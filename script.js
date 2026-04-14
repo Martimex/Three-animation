@@ -1,6 +1,18 @@
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/Addons.js";
 
 const canvas = document.querySelector('#webgl-canvas');
+
+const CONFIG = {
+    objectsAmount: 8,
+    positionDiff: 0.2,
+}
+
+const posObj = {
+    xPos: [0,   -2.5,   -4,     -2.5,     0,      2.5,      4,      2.5],
+    yPos: [4,   2.5,     0,     -2.5,    -4,     -2.5,      0,      2.5]
+}
+
 const SIZES = {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -26,29 +38,81 @@ window.addEventListener('dblclick', () => {
     }
 });
 
+
+const [customGroup_1, customGroup_2, customGroup_3, customGroup_4] = [new THREE.Group(), new THREE.Group(), new THREE.Group(), new THREE.Group()];
+
+
 const scene = new THREE.Scene();
 
-const sphereMesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial({color: "hsl(66, 65%, 70%)"})
-);
-
 const camera = new THREE.PerspectiveCamera(65, SIZES.width / SIZES.height, 0.1, 100);
-camera.position.z = 3;
-camera.position.y = 0;
+camera.position.z = 10;
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.zoomSpeed = 0.35;
+controls.enableRotate = false;
+controls.maxDistance = 10;
+controls.minDistance = 6;
+controls.enabled = true;
 
 const renderer = new THREE.WebGLRenderer({
     canvas,
 })
 
-scene.add(sphereMesh);
+scene.add(customGroup_1, customGroup_2, customGroup_3, customGroup_4);
 scene.add(camera);
 renderer.setSize(SIZES.width, SIZES.height);
 
 
 const loop = () => {
+    customGroup_1.rotation.z += 0.0066;
+    customGroup_2.rotation.z += 0.0070;
+    customGroup_3.rotation.z += 0.0074;
+    customGroup_4.rotation.z += 0.0078;
+    controls.update();
     renderer.render(scene, camera);
     window.requestAnimationFrame(loop);
 }
 
+spawnGroups(4);
 loop();
+
+/*  ---  */
+
+function spawnGroups(amount) {
+    for(let amountNo=0; amountNo<amount; amountNo++) {
+        factory(amountNo);
+    }
+}
+
+function factory(repeatNo) {
+    for(let i=0; i<CONFIG.objectsAmount; i++) {
+        const newCube = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshBasicMaterial({color: `hsl(${i * (360 / CONFIG.objectsAmount)}, ${55 + (5 * repeatNo)}%, ${55 + (5 * repeatNo)}%)`})
+        );
+        newCube.position.x = posObj.xPos[(i) % posObj.xPos.length] / 2 ;
+        newCube.position.y = posObj.yPos[(i) % posObj.yPos.length] / 2 ;
+        
+        newCube.position.z = (repeatNo + 1) * 2;
+
+        addToCorrectGroup(repeatNo, newCube);
+    }
+}
+
+function addToCorrectGroup(no, object) {
+    switch(no) {
+        case 0:
+            customGroup_1.add(object);
+            break;
+        case 1:
+            customGroup_2.add(object);
+            break;
+        case 2:
+            customGroup_3.add(object);
+            break;
+        case 3:
+            customGroup_4.add(object);
+            break;
+    }
+}
