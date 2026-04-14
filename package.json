@@ -1,0 +1,17 @@
+{
+  "name": "first",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "three": "^0.183.2",
+    "vite": "^8.0.8"
+  }
+}
