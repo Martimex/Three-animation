@@ -1,12 +1,37 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
+import GUI from "lil-gui";
+
+const gui = new GUI({ title: "Controls - press H key to toggle" });
+window.addEventListener("keydown", () => {
+    gui.show(gui._hidden);
+});
 
 const canvas = document.querySelector('#webgl-canvas');
 
+const LILCONFIG = {
+    animationType: {
+        normal: () => CONFIG.CURRENT_ANIMATION_MODE = "normal",
+        desync: () => CONFIG.CURRENT_ANIMATION_MODE = "desync",
+    }
+}
+gui.add(LILCONFIG.animationType, "normal");
+gui.add(LILCONFIG.animationType, "desync");
+
 const CONFIG = {
+    CURRENT_ANIMATION_MODE: "normal",
     objectsAmount: 8,
     positionDiff: 0.2,
+    defaultRotationSpeed: 0.0066,
+    onDesyncRotationSpeed: {
+        "tier1": 0.0066,
+        "tier2": 0.0070,
+        "tier3": 0.0074,
+        "tier4": 0.0078
+    }
 }
+
+
 
 const posObj = {
     xPos: [0,   -2.5,   -4,     -2.5,     0,      2.5,      4,      2.5],
@@ -40,7 +65,7 @@ window.addEventListener('dblclick', () => {
 
 
 const [customGroup_1, customGroup_2, customGroup_3, customGroup_4] = [new THREE.Group(), new THREE.Group(), new THREE.Group(), new THREE.Group()];
-
+const parentGroup = new THREE.Group();
 
 const scene = new THREE.Scene();
 
@@ -59,16 +84,14 @@ const renderer = new THREE.WebGLRenderer({
     canvas,
 })
 
-scene.add(customGroup_1, customGroup_2, customGroup_3, customGroup_4);
+parentGroup.add(customGroup_1, customGroup_2, customGroup_3, customGroup_4);
+scene.add(parentGroup);
 scene.add(camera);
 renderer.setSize(SIZES.width, SIZES.height);
 
 
 const loop = () => {
-    customGroup_1.rotation.z += 0.0066;
-    customGroup_2.rotation.z += 0.0070;
-    customGroup_3.rotation.z += 0.0074;
-    customGroup_4.rotation.z += 0.0078;
+    runAnimationFrame(CONFIG.CURRENT_ANIMATION_MODE);
     controls.update();
     renderer.render(scene, camera);
     window.requestAnimationFrame(loop);
@@ -78,6 +101,22 @@ spawnGroups(4);
 loop();
 
 /*  ---  */
+
+function runAnimationFrame(animationMode) {
+    switch(animationMode) {
+        case "normal": {
+            parentGroup.rotation.z += CONFIG.defaultRotationSpeed;
+            break;
+        }
+        case "desync" : {
+            customGroup_1.rotation.z += CONFIG.onDesyncRotationSpeed.tier1;
+            customGroup_2.rotation.z += CONFIG.onDesyncRotationSpeed.tier2;
+            customGroup_3.rotation.z += CONFIG.onDesyncRotationSpeed.tier3;
+            customGroup_4.rotation.z += CONFIG.onDesyncRotationSpeed.tier4;
+            break;
+        }
+    }
+}
 
 function spawnGroups(amount) {
     for(let amountNo=0; amountNo<amount; amountNo++) {
